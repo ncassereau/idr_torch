@@ -5,6 +5,14 @@ import warnings
 from typing import List, Set, Tuple, Type, Union
 
 
+try:
+    import torch
+except ImportError:
+    _TORCH_AVAILABLE = False
+else:
+    _TORCH_AVAILABLE = True
+
+
 class IdrTorchWarning(RuntimeWarning):
     """
     Type (subtype of RuntimeWarning) of all warnings raised by idr_torch.

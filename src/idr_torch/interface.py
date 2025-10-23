@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import warnings
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from functools import wraps
 from importlib.metadata import version
 from inspect import isclass
@@ -97,7 +97,7 @@ class Interface(object):
 
     def make_new_function(
         self, dest_name: str, /, as_property: bool = True
-    ) -> Union[property, callable]:
+    ) -> Union[property, Callable]:
         @wraps(getattr(API, dest_name))
         def redirect(self: Interface, *args, **kwargs) -> Any:
             with warnings.catch_warnings(record=True) as warning_list:
