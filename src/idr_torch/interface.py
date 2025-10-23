@@ -145,22 +145,23 @@ class Interface:
 
     def summary_str(self, /, tab_length: int = 4) -> str:
         string = f"{self.current_API}(\n"
+        # These attributes are added dynamically in add_API_functions()
         values = {
-            "rank": self.rank,
-            "local_rank": self.local_rank,
-            "world_size": self.world_size,
-            "local_world_size": self.local_world_size,
-            "cpus_per_task": self.cpus,
-            "nodelist": self.nodelist,
-            "hostname": self.hostname,
-            "master_address": self.master_addr,
-            "master_port": self.master_port,
+            "rank": self.rank,  # type: ignore[attr-defined]
+            "local_rank": self.local_rank,  # type: ignore[attr-defined]
+            "world_size": self.world_size,  # type: ignore[attr-defined]
+            "local_world_size": self.local_world_size,  # type: ignore[attr-defined]
+            "cpus_per_task": self.cpus,  # type: ignore[attr-defined]
+            "nodelist": self.nodelist,  # type: ignore[attr-defined]
+            "hostname": self.hostname,  # type: ignore[attr-defined]
+            "master_address": self.master_addr,  # type: ignore[attr-defined]
+            "master_port": self.master_port,  # type: ignore[attr-defined]
         }
         for key, value in values.items():
             string += " " * tab_length + f"{key}={value},\n"
         string += ")"
         return string
 
-    def summary(self, /, tab_length: int = 4) -> str:
+    def summary(self, /, tab_length: int = 4) -> None:
         with warnings.catch_warnings(action="ignore", category=IdrTorchWarning):
             print(self.summary_str(tab_length=tab_length))
