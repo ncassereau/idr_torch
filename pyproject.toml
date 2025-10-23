@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "idr_torch"
 authors = [
-    {name = "Nathan Cassereau", email = "nathan.cassereau@idris.fr"},
+    {name = "Nathan Cassereau", email = "nathan@cassereau.fr"},
 ]
 description = "Distribution initialization util tool"
 requires-python = ">=3.8"
@@ -28,16 +28,30 @@ readme = "README.md"
 
 [project.optional-dependencies]
 notebook = ["ipyparallel"]
+dev = [
+  "ruff>=0.1.0",
+  "torch",
+  "python-hostlist",
+]
 
 [project.urls]
-"Homepage" = "https://github.com/idriscnrs/idr_torch"
-"Source" = "https://github.com/idriscnrs/idr_torch"
+"Homepage" = "https://github.com/ncassereau/idr_torch"
+"Source" = "https://github.com/ncassereau/idr_torch"
 
 [tool.ruff]
+line-length = 88
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "I"]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
 
 [tool.setuptools.dynamic]
 version = {file = ["VERSION.txt"]}
