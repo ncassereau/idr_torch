@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 from collections.abc import Callable
 
 from ...config import __all__ as all_API_methods

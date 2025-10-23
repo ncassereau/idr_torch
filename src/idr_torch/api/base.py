@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 import socket
 import warnings
 from abc import ABC, abstractmethod

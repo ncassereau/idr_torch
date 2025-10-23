@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 """Type stubs for idr_torch module.
 
 This file provides type hints for Pylance and other type checkers.

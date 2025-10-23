@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 import warnings
 from collections.abc import Callable, Iterable
 from functools import wraps
