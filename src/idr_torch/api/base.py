@@ -1,20 +1,31 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import socket
 import warnings
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, List, Union
+from collections.abc import Callable
+from functools import wraps
+from typing import TYPE_CHECKING
 
-from ..utils import IdrTorchWarning
+from ..utils import _TORCH_AVAILABLE, IdrTorchWarning
 
-if TYPE_CHECKING:
+if TYPE_CHECKING and _TORCH_AVAILABLE:
     import torch
 
 
-def keep_as_func(func: callable) -> callable:
-    setattr(func, "__keep_as_func__", True)
+def keep_as_func(func: Callable) -> Callable:
+    func.__keep_as_func__ = True
     return func
+
+
+def depends_on_torch(func: Callable) -> Callable:
+    if _TORCH_AVAILABLE:
+        return func
+    else:
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            raise RuntimeError("This function requires torch which is not available")
+
+        return wrapper
 
 
 class API(ABC):
@@ -30,80 +41,48 @@ class API(ABC):
 
     @abstractmethod
     def rank(self) -> int:
-        """
-        Property containing the rank of the process.
-        """
         raise NotImplementedError()
 
     @abstractmethod
     def local_rank(self) -> int:
-        """
-        Property containing the local rank of the process.
-        """
         raise NotImplementedError()
 
     @abstractmethod
     def world_size(self) -> int:
-        """
-        Property containing the number of processes launched.
-        """
         raise NotImplementedError()
 
     @abstractmethod
     def local_world_size(self) -> int:
-        """
-        Property containing the number of processes launched of each node.
-        """
         raise NotImplementedError()
 
     @abstractmethod
     def num_nodes(self) -> int:
-        """
-        Property containing the number of nodes.
-        """
         raise NotImplementedError()
 
     @abstractmethod
     def cpus(self) -> int:
-        """
-        Property containing the number of CPUs allocated to each process.
-        """
         raise NotImplementedError()
 
     @abstractmethod
-    def gpus(self) -> List[str]:
-        """
-        Property containing all GPUs ids.
-        """
+    def gpus(self) -> list[str]:
         raise NotImplementedError()
 
     @abstractmethod
-    def nodelist(self) -> Union[str, List[str]]:
-        """
-        Property containing the list of nodes.
-        """
+    def nodelist(self) -> str | list[str]:
         raise NotImplementedError()
 
     @abstractmethod
     def master_address(self) -> str:
-        """
-        Property containing the master node.
-        """
         raise NotImplementedError()
 
     @abstractmethod
     def port(self) -> int:
-        """
-        Property containing the port to communicate with the master process.
-        """
         raise NotImplementedError()
 
     def is_master(self) -> bool:
-        """
-        Detects whether the process is the master (i.e. the rank 0).
-        """
         return self.rank() == 0
 
+    @depends_on_torch
     def device(self) -> "torch.device":
         import torch
 
@@ -112,14 +91,11 @@ class API(ABC):
         else:
             return torch.device("cpu")
 
+    @depends_on_torch
     @keep_as_func
     def init_process_group(
         self, *args, force_init: bool = False, **kwargs
     ) -> "torch.device":
-        r"""
-        See https://pytorch.org/docs/stable/distributed.html#torch.distributed.init_process_group
-        for more infomation. Also returns the device.
-        """
         import torch.distributed as dist
 
         _kwargs = dict(rank=self.rank(), world_size=self.world_size())
@@ -140,7 +116,10 @@ class API(ABC):
                 dist.init_process_group(*args, **_kwargs)
             else:
                 warnings.warn(
-                    message="A distributed environment had already been initialized. Moving on.",
+                    message=(
+                        "A distributed environment had already been initialized."
+                        " Moving on."
+                    ),
                     category=IdrTorchWarning,
                     stacklevel=4,
                 )

@@ -1,9 +1,5 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import os
 import warnings
-from typing import List
 
 from ..utils import IdrTorchWarning
 from .base import API
@@ -34,10 +30,10 @@ class TorchElasticAPI(API):
     def cpus(self) -> int:
         return len(os.sched_getaffinity(0)) // self.local_world_size()
 
-    def gpus(self) -> List[str]:
+    def gpus(self) -> list[str]:
         return [str(i) for i in range(self.local_world_size())]
 
-    def nodelist(self) -> List[str]:
+    def nodelist(self) -> list[str]:
         warnings.warn(
             "TorchElastic does not provide the whole list of nodes "
             "involved in a distributed computation. So you will only "

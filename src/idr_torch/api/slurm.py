@@ -1,8 +1,4 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import os
-from typing import List, Union
 
 from .base import API
 from .modifiers import AutoMasterAddressPort
@@ -37,13 +33,13 @@ class SlurmAPI(API):
         cpu = int(os.environ.get("SLURM_CPUS_PER_TASK", 0))
         return cpu or len(os.sched_getaffinity(0))
 
-    def gpus(self) -> List[str]:
+    def gpus(self) -> list[str]:
         step_gpus = os.environ.get("SLURM_STEP_GPUS", None)
         if step_gpus is not None:
             return step_gpus.split(",")
         return []
 
-    def nodelist(self) -> Union[List[str], str]:
+    def nodelist(self) -> list[str] | str:
         compact_nodelist = os.environ["SLURM_STEP_NODELIST"]
         try:
             from hostlist import expand_hostlist

@@ -1,23 +1,21 @@
-#! /usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import atexit
 import inspect
 import os
 import signal
 import subprocess
 import warnings
+from collections.abc import Callable
 from functools import cached_property, wraps
 from textwrap import dedent
-from typing import Any, Callable
-
-from IPython import get_ipython
+from typing import Any, cast
 
 import idr_torch
 
 try:
     import ipyparallel as ipp
     import ipyparallel.client.magics as ipp_magics
+    from IPython.core.getipython import get_ipython
+    from IPython.core.interactiveshell import InteractiveShell
 except ImportError:
     IPYPARALLEL_AVAILABLE = False
 else:
@@ -48,6 +46,7 @@ def dependent_on_ipyparallel(func: Callable) -> Callable:
                 "\t- pip install idr_torch[notebook]\n"
                 "This functionality is currently a no-op."
             ),
+            stacklevel=1,
         )
 
         @wraps(func)
@@ -88,7 +87,7 @@ def only_on_master(func: Callable) -> Callable:
 class ParallelInterface:
     def __init__(self):
         super().__init__()
-        self.rc = None
+        self.rc: ipp.Client | None = None
         self.launched = False
         self.setup_signal_handlers()
         self.controller_process = None
@@ -111,7 +110,7 @@ class ParallelInterface:
 
     @cached_property
     def ipp_magics_manager(self) -> "ipp_magics.ParallelMagics":
-        ipython = get_ipython()
+        ipython = cast(InteractiveShell, get_ipython())
         return ipython.magics_manager.magics["line"]["autopx"].__self__
 
     def kill_process(self, process: subprocess.Popen) -> None:
@@ -132,8 +131,10 @@ class ParallelInterface:
                 self.rc.shutdown()
                 self.rc = None
 
-            self.controller_process = self.kill_process(self.controller_process)
-            self.engine_process = self.kill_process(self.engine_process)
+            if self.controller_process is not None:
+                self.controller_process = self.kill_process(self.controller_process)
+            if self.engine_process is not None:
+                self.engine_process = self.kill_process(self.engine_process)
             self.launched = False
 
     def setup_signal_handlers(self):
@@ -151,6 +152,7 @@ class ParallelInterface:
             ["ipcontroller", "--ip", self.host, "--cluster-id", self.cluster_id],
             stderr=subprocess.PIPE,
         )
+        assert self.controller_process.stderr is not None
         buffer_accumulator = ""
         while True:
             new_output = self.controller_process.stderr.read(1).decode("utf-8")
@@ -166,6 +168,7 @@ class ParallelInterface:
             ["srun", "ipengine", "--cluster-id", self.cluster_id],
             stderr=subprocess.PIPE,
         )
+        assert self.engine_process.stderr is not None
         buffer_accumulator = ""
         num_registered_engines = 0
         while True:
@@ -179,9 +182,9 @@ class ParallelInterface:
                 buffer_accumulator += new_output
         print("All Engines started")
 
-    def launch_client(self) -> ipp.Client:
+    def launch_client(self) -> None:
         self.rc = ipp.Client(cluster_id=self.cluster_id)
-        self.rc.wait_for_engines(n=self.num_engines, interactive=False)
+        self.rc.wait_for_engines(n=self.num_engines, interactive=False)  # type: ignore
 
     @staticmethod
     def on_client_start() -> None:
@@ -208,23 +211,28 @@ class ParallelInterface:
     @dependent_on_ipyparallel
     @only_if_launched
     @only_on_master
-    def push(self, D: dict[str, Any] = {}, **kwargs: Any) -> None:
-        _dict: dict[str, Any] = {}
-        _dict.update(D)
-        _dict.update(kwargs)
-        self.rc[:].push(_dict)
+    def push(self, D: dict[str, Any] | None = None, **kwargs: Any) -> None:
+        if self.rc is not None:
+            _dict: dict[str, Any] = {}
+            if D is not None:
+                _dict.update(D)
+            _dict.update(kwargs)
+            self.rc[:].push(_dict)
 
     @dependent_on_ipyparallel
     @only_if_launched
     @only_on_master
     def pull(self, *names: str) -> dict[str, list[Any]]:
-        gathered = self.rc[:].pull(names, block=True)
-        output: dict[str, list[Any]] = {}
-        for idx, name in enumerate(names):
-            output[name] = []
-            for rank in range(len(gathered)):
-                output[name].append(gathered[rank][idx])
-        return output
+        if self.rc is not None:
+            gathered = self.rc[:].pull(names, block=True)
+            output: dict[str, list[Any]] = {}
+            for idx, name in enumerate(names):
+                output[name] = []
+                for rank in range(len(gathered)):
+                    output[name].append(gathered[rank][idx])
+            return output
+        else:
+            return {}
 
 
 _parallel_interface = ParallelInterface()

@@ -1,10 +1,6 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import os
 import socket
 from contextlib import closing
-from typing import List, Optional
 
 from .base import API
 from .modifiers import AutoMasterAddressPort, UndistributedWarning
@@ -18,7 +14,7 @@ class DefaultAPI(API):
 
     def __init__(self):
         self.base_port: int = 13689
-        self.current_port: Optional[int] = None
+        self.current_port: int | None = None
 
     @staticmethod
     def find_available_port() -> int:
@@ -48,10 +44,10 @@ class DefaultAPI(API):
     def cpus(self) -> int:
         return len(os.sched_getaffinity(0))
 
-    def gpus(self) -> List[str]:
+    def gpus(self) -> list[str]:
         return []
 
-    def nodelist(self) -> List[str]:
+    def nodelist(self) -> list[str]:
         return ["localhost"]
 
     def master_address(self) -> str:
