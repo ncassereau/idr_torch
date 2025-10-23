@@ -64,7 +64,7 @@ class SlurmAPI(API):
         """
         from re import findall, split, sub
 
-        regex = "\[([^[\]]*)\]"
+        regex = r"\[([^[\]]*)\]"
         all_replacement: list[str] = findall(regex, hostlist)
         new_values = [split("-|,", element)[0] for element in all_replacement]
         for i in range(len(new_values)):
