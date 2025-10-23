@@ -4,7 +4,7 @@ import os
 import signal
 import subprocess
 import warnings
-from collections.abc import Callable
+from collections.abc import Callable  # type: ignore[misc]
 from functools import cached_property, wraps
 from textwrap import dedent
 from typing import Any, cast
