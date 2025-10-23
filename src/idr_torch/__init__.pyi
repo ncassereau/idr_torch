@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """Type stubs for idr_torch module.
 
 This file provides type hints for Pylance and other type checkers.
@@ -7,15 +6,13 @@ At runtime, the module is replaced by an Interface instance that dynamically
 routes to the appropriate API implementation.
 """
 
-from typing import List, Union
+import torch
 
 from .api import API as API
 from .api import AutoMasterAddressPort as AutoMasterAddressPort
 from .api import decorate_methods as decorate_methods
 from .api import modifiers as modifiers
 from .utils import IdrTorchWarning as IdrTorchWarning
-
-import torch
 
 __version__: str
 
@@ -38,10 +35,10 @@ num_nodes: int
 cpus: int
 """Property containing the number of CPUs allocated to each process."""
 
-gpu_ids: List[str]
+gpu_ids: list[str]
 """Property containing all GPUs ids."""
 
-nodelist: Union[str, List[str]]
+nodelist: str | list[str]
 """Property containing the list of nodes."""
 
 master_addr: str
@@ -70,7 +67,8 @@ def init_process_group(*args, force_init: bool = False, **kwargs) -> torch.devic
     Args:
         *args: Positional arguments passed to torch.distributed.init_process_group
         force_init: If True, destroy existing process group before reinitializing
-        **kwargs: Additional keyword arguments passed to torch.distributed.init_process_group
+        **kwargs: Additional keyword arguments passed to
+            torch.distributed.init_process_group
 
     Returns:
         torch.device: The device for this process
@@ -120,7 +118,7 @@ def get_launcher_API() -> API:
 current_API: str
 """Name of the currently active API."""
 
-all_APIs: List[API]
+all_APIs: list[API]
 """List of all registered API implementations."""
 
 def crawl_module_for_APIs(module) -> None:

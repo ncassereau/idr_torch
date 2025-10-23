@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import warnings
 from collections.abc import Callable, Iterable
@@ -7,7 +6,7 @@ from functools import wraps
 from importlib.metadata import version
 from inspect import isclass
 from pathlib import Path
-from typing import Any, List, Union
+from typing import Any
 
 from . import __name__, __path__
 from .api import API, AutoMasterAddressPort, DefaultAPI, decorate_methods
@@ -16,13 +15,13 @@ from .utils import IdrTorchWarning, warning_filter
 __version__ = version(__name__)
 
 
-class EmptyClass(object):
+class EmptyClass:
     pass
 
 
-class Interface(object):
+class Interface:
     def __init__(self):
-        self._available_APIs: List[API] = []
+        self._available_APIs: list[API] = []
         self.crawl_shipped_APIs()
         self.add_other_object_for_easy_access()
         self.add_API_functions()
@@ -46,7 +45,7 @@ class Interface(object):
     def make_dir(self):
         from . import config
 
-        self.__dir: List[str] = []
+        self.__dir: list[str] = []
         self.__dir += dir(EmptyClass())
         self.__dir += config.__all__
         self.__dir += self.__all__
@@ -97,7 +96,7 @@ class Interface(object):
 
     def make_new_function(
         self, dest_name: str, /, as_property: bool = True
-    ) -> Union[property, Callable]:
+    ) -> property | Callable:
         @wraps(getattr(API, dest_name))
         def redirect(self: Interface, *args, **kwargs) -> Any:
             with warnings.catch_warnings(record=True) as warning_list:
@@ -133,7 +132,7 @@ class Interface(object):
         return self.get_launcher_API().name
 
     @property
-    def all_APIs(self) -> List[API]:
+    def all_APIs(self) -> list[API]:
         return self._available_APIs
 
     def crawl_module_for_APIs(self, module) -> None:

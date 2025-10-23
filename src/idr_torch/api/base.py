@@ -1,22 +1,20 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import socket
-from collections.abc import Callable
 import warnings
-from functools import wraps
 from abc import ABC, abstractmethod
-from typing import List, Union, TYPE_CHECKING
+from collections.abc import Callable
+from functools import wraps
+from typing import TYPE_CHECKING
 
-from ..utils import IdrTorchWarning, _TORCH_AVAILABLE
-
+from ..utils import _TORCH_AVAILABLE, IdrTorchWarning
 
 if TYPE_CHECKING and _TORCH_AVAILABLE:
     import torch
 
 
 def keep_as_func(func: Callable) -> Callable:
-    setattr(func, "__keep_as_func__", True)
+    func.__keep_as_func__ = True
     return func
 
 
@@ -24,9 +22,11 @@ def depends_on_torch(func: Callable) -> Callable:
     if _TORCH_AVAILABLE:
         return func
     else:
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             raise RuntimeError("This function requires torch which is not available")
+
         return wrapper
 
 
@@ -66,11 +66,11 @@ class API(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def gpus(self) -> List[str]:
+    def gpus(self) -> list[str]:
         raise NotImplementedError()
 
     @abstractmethod
-    def nodelist(self) -> Union[str, List[str]]:
+    def nodelist(self) -> str | list[str]:
         raise NotImplementedError()
 
     @abstractmethod
@@ -118,7 +118,10 @@ class API(ABC):
                 dist.init_process_group(*args, **_kwargs)
             else:
                 warnings.warn(
-                    message="A distributed environment had already been initialized. Moving on.",
+                    message=(
+                        "A distributed environment had already been initialized."
+                        " Moving on."
+                    ),
                     category=IdrTorchWarning,
                     stacklevel=4,
                 )

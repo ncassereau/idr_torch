@@ -1,12 +1,9 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import warnings
-from typing import List, Set, Tuple, Type, Union
-
 
 try:
-    import torch
+    import torch  # noqa: F401
 except ImportError:
     _TORCH_AVAILABLE = False
 else:
@@ -24,9 +21,9 @@ class IdrTorchWarning(RuntimeWarning):
 
 class WarningFilter:
     def __init__(self):
-        self.registry: Set[Tuple[str, Union[Type[str], Type[Warning]]]] = set()
+        self.registry: set[tuple[str, type[str] | type[Warning]]] = set()
 
-    def block(self, warning: Union[str, Warning]) -> bool:
+    def block(self, warning: str | Warning) -> bool:
         text = str(warning)
         category = warning.__class__
         if not isinstance(warning, IdrTorchWarning):
@@ -37,7 +34,7 @@ class WarningFilter:
             return False
         return True
 
-    def warn(self, warning_list: List[warnings.WarningMessage]):
+    def warn(self, warning_list: list[warnings.WarningMessage]):
         for warning in warning_list:
             if not self.block(warning.message):
                 category = (

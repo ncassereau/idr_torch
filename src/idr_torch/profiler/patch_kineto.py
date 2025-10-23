@@ -1,17 +1,15 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import os
 import sys
 from functools import wraps
 from re import sub
-from typing import Optional
 
 import torch.profiler
 from packaging.version import Version
 
 
-class persistent_locals(object):
+class persistent_locals:
     """
     Allows access to local variables of a function.
     Shamelessly stolen from
@@ -49,7 +47,7 @@ if Version(torch.__version__) >= Version("1.12.0"):
 
     @wraps(torch.profiler.tensorboard_trace_handler)
     def tensorboard_trace_handler(
-        dir_name: str, worker_name: Optional[str] = None, use_gzip: bool = False
+        dir_name: str, worker_name: str | None = None, use_gzip: bool = False
     ):
         handler_fn = torch.profiler.tensorboard_trace_handler(
             dir_name=dir_name,
