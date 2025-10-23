@@ -1,5 +1,13 @@
 # Releases
 
+## 2.5.0
+*October 2025*
+
+- Solved regex issue (wrong escape sequece).
+- Solved miscellanious pylance issues.
+- Removed obsolete profiler fix.
+
+
 ## 2.4.0
 *February 2025*
 
